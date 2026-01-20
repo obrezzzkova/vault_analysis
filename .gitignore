@@ -1,0 +1,5 @@
+.env
+__pycache__/
+*.db
+vault_metrics.db
+venv/
