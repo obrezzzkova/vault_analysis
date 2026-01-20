@@ -21,9 +21,8 @@ if not RPC_URL:
 
 PROXY_ADDRESS = "0x8ECC0B419dfe3AE197BC96f2a03636b5E1BE91db"
 
-# Блок создания контракта 17556156 (можно найти на Etherscan во вкладке Internal Txns или в первом блоке транзакции создания)
-DEPLOYMENT_BLOCK = 23356156
-# получилось загрузить исторические данные только с этого блока  
+# Блок создания контракта = 17556156 (можно найти на Etherscan во вкладке Internal Txns)
+DEPLOYMENT_BLOCK = 23356156 # получилось загрузить исторические данные только с этого блока  
 
 
 ABI = [
@@ -82,7 +81,7 @@ class VaultETL:
             current_block = self.w3.eth.get_block('latest')['number']
             
             # Идем от блока деплоя до текущего с шагом
-            for block in range(DEPLOYMENT_BLOCK+5000000, current_block, step):
+            for block in range(DEPLOYMENT_BLOCK, current_block, step):
                 try:
                     metric = self.get_data_at_block(block)
                     time.sleep(0.1)

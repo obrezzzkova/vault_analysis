@@ -2,10 +2,16 @@ import requests
 import json
 import os
 import pprint
+from dotenv import load_dotenv
+from pathlib import Path
 
+# получаем ключи через os.getenv
+env_path = Path.cwd() / '.env' 
+load_dotenv(env_path)
 
-ETHERSCAN_API_KEY = "UQZ5ZBHGK1FY13K3ZIFKW3VMBDV8AJEATT"
-IMPLEMENTATION = "0xE66f6a37C807F71591854e22075b3A613B46abe2"
+ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
+
+IMPLEMENTATION = "0xE66f6a37C807F71591854e22075b3A613B46abe2" # адрес волта с кодом (не прокси)
 
 url = "https://api.etherscan.io/v2/api"
 
@@ -22,11 +28,11 @@ result = response["result"][0]
 
 pprint.pprint(response)
 
-# 1️⃣ ABI
+# ABI
 with open("abi.json", "w") as f:
     json.dump(json.loads(result["ABI"]), f, indent=2)
 
-# 2️⃣ Исходный код
+# Исходный код
 source = result["SourceCode"]
 
 os.makedirs("contracts", exist_ok=True)
@@ -43,4 +49,4 @@ else:
     with open("contracts/Contract.sol", "w") as f:
         f.write(source)
 
-print("✅ Код и ABI скачаны")
+print("Код и ABI скачаны")
