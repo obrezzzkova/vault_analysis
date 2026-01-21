@@ -58,4 +58,33 @@ Real-time Mode: Сбор данных с последнего подтвержд
 ### Схема пайплайна
 
 ```mermaid
-[ВСТАВИТЬ КОД ИЗ БЛОКА ВЫШЕ] 
+graph TD
+    %% 1. Источники
+    subgraph Blockchain_Layer
+        ETH[Ethereum Mainnet]
+    end
+
+    %% 2. ETL Процесс
+    subgraph ETL_Service
+        Registry[Vault Registry]
+        Extractor[Extractor Web3.py]
+        Transformer[Transformer Logic]
+        
+        Registry --> Extractor
+        Extractor --> Transformer
+    end
+
+    %% 3. База данных
+    subgraph Database
+        T1[(Chains)]
+        T2[(Vaults)]
+        T3{Vault_Metrics}
+        
+        T1 --> T2
+        T2 --> T3
+    end
+
+    %% Потоки
+    Blockchain_Layer -.-> Registry
+    Transformer --> T3
+```
