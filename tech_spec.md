@@ -87,4 +87,13 @@ graph TD
     %% Потоки
     Blockchain_Layer -.-> Registry
     Transformer --> T3
+
+    %% Точки расширения
+    subgraph Future_Expansion [Future Scope]
+        direction LR
+        Alerts[Telegram Alerting]
+        Dashboards[ Dashboards]
+    end
+
+    T3 --> Future_Expansion
 ```
