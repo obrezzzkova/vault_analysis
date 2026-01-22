@@ -2,7 +2,7 @@ from web3 import Web3
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from sqlalchemy import Column,BigInteger, Float, String, DateTime, Integer, func
+from sqlalchemy import Column,BigInteger, Numeric, String, DateTime, Integer, func
 from datetime import datetime, timezone
 import time 
 import os
@@ -46,9 +46,9 @@ class VaultMetric(Base):
     __tablename__ = 'vault_metrics'
     id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    block_number = Column(BigInteger)
-    tvl_assets = Column(Float)  # Сумма активов в токенах
-    share_price = Column(Float) # Стоимость 1 доли
+    block_number = Column(BigInteger, unique=True, primary_key=True) #добавила номер блока в ключ 
+    tvl_assets = Column(Numeric)  # Сумма активов в токенах
+    share_price = Column(Numeric) # Стоимость 1 доли
     raw_total_assets = Column(String) # Сохраняем сырое значение на всякий случай
 
 
@@ -57,7 +57,7 @@ class VaultETL:
         self.w3 = Web3(Web3.HTTPProvider(RPC_URL))
         self.engine = create_engine(DB_URL)
         Base.metadata.create_all(self.engine)
-        self.Session = sessionmaker(bind=self.engine)
+        self.Session = sessionmaker(bind=self.engine, expire_on_commit=False)
         self.contract = self.w3.eth.contract(
             address=self.w3.to_checksum_address(PROXY_ADDRESS), 
             abi=ABI
@@ -80,7 +80,7 @@ class VaultETL:
             share_price=raw_assets / raw_supply if raw_supply > 0 else 1.0
         )
 
-    def backfill_history(self, step=50000):
+    def backfill_history(self, step=10000):
         """Собирает историю, если база пуста"""
         session = self.Session()
         # Проверяем, есть ли уже записи
@@ -128,7 +128,7 @@ class VaultETL:
 if __name__ == "__main__":
     etl = VaultETL()
     # 1. Сначала проверяем историю (выполнится один раз за все время существования БД)
-    #etl.backfill_history(step=10000) # Шаг ~1.5 дня (1 блок ~12 сек)
-    etl.backfill_history(step=50000) # 
+    # etl.backfill_history(step=10000) # Шаг ~1.5 дня (1 блок ~12 сек)
+    etl.backfill_history(step=50000) # Примерно каждые 7 дней 
     # 2. Переходим к постоянному мониторингу
     etl.run_live(interval=300)
