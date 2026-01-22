@@ -8,6 +8,7 @@ import time
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+import requests
 
 # получаем ключи через os.getenv
 env_path = Path.cwd() / '.env' 
@@ -23,6 +24,14 @@ PROXY_ADDRESS = "0x8ECC0B419dfe3AE197BC96f2a03636b5E1BE91db"
 
 # Блок создания контракта = 17556156 (можно найти на Etherscan во вкладке Internal Txns)
 DEPLOYMENT_BLOCK = 23356156 # получилось загрузить исторические данные только с этого блока  
+
+# Для того чтобы узнать TLV в $ 
+def get_usd_price(token_symbol):
+    url = f"https://api.coingecko.com/api/v3/simple/price?ids={token_symbol.lower()}&vs_currencies=usd"
+    response = requests.get(url).json()
+    return response.get(token_symbol.lower(), {}).get('usd', 0)
+
+PRICE = get_usd_price("ethereum")
 
 
 ABI = [
@@ -60,13 +69,14 @@ class VaultETL:
         raw_supply = self.contract.functions.totalSupply().call(block_identifier=block_number)
         decimals = self.contract.functions.decimals().call()
         
+        
         block_info = self.w3.eth.get_block(block_number)
         dt = datetime.fromtimestamp(block_info['timestamp'], tz=timezone.utc)
         
         return VaultMetric(
             timestamp=dt,
             block_number=block_number,
-            tvl_assets=raw_assets / (10**decimals),
+            tvl_assets=raw_assets * PRICE / (10**decimals),
             share_price=raw_assets / raw_supply if raw_supply > 0 else 1.0
         )
 
